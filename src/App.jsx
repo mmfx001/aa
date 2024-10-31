@@ -1,10 +1,32 @@
-import React from 'react'
-import LiveStream from './Live'
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import LiveStream from './Live';
+import LiveStreamList from './Livelist';
+import Login from './Login';
 
-function App() {
+
+
+const App = () => {
   return (
-    <div><LiveStream/></div>
-  )
-}
+    <Router>
+      <Main />
+    </Router>
+  );
+};
+const Main = () => {
 
-export default App
+  return (
+    <div>
+
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/live" element={<LiveStream />} />
+          <Route path="/livee" element={<LiveStreamList />} />
+
+        </Routes>
+      </div>
+  
+  );
+};
+
+export default App;
