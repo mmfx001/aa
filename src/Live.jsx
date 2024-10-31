@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
-import LiveStreamList from './Livelist';
+import LiveStreamList from './LiveList';
+import { useParams } from 'react-router-dom';
 
-const socket = io('https://insta-2-e60y.onrender.com', {
-    transports: ['websocket', 'polling'],
-});
+const socket = io('http://localhost:5000/live'); // Signaling server manzili
 
 const LiveStream = () => {
     const videoRef = useRef(null);
@@ -12,26 +11,14 @@ const LiveStream = () => {
     const [isStreaming, setIsStreaming] = useState(false);
     const [remoteStreams, setRemoteStreams] = useState([]);
     const [peerConnections, setPeerConnections] = useState({});
-
-    useEffect(() => {
-        socket.on('connect', () => {
-            console.log('Socket.IO connected:', socket.id);
-        });
-
-        socket.on('connect_error', (err) => {
-            console.error('Socket.IO connection error:', err);
-        });
-
-        return () => {
-            socket.disconnect(); // Komponent chiqarilganda ulanishni uzing
-        };
-    }, []);
+    const { roomId } = useParams(); // roomId ni olish
 
     const startStream = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             videoRef.current.srcObject = stream;
 
+            // Foydalanuvchi ma'lumotlarini olish
             const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
             const liveInfo = {
                 email: loggedInUser.email,
@@ -39,19 +26,22 @@ const LiveStream = () => {
                 startTime: new Date().toISOString(),
                 videoTitle: 'Jonli Efir',
                 status: 'started',
-                roomId: 'roomId', // Room ID ni kerakli joyga almashtiring
+                roomId: roomId,
             };
 
-            await fetch('https://insta-2-e60y.onrender.com/live', {
+            // Jonli efirga ma'lumotlarni yuborish
+            await fetch('http://localhost:5000/live', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(liveInfo),
             });
 
+            // Jonli efirga qo'shilish
             socket.emit('join-room', liveInfo.roomId, socket.id, liveInfo);
 
             socket.on('user-connected', (userId) => {
-                const peerConnection = createPeerConnection(userId, stream);
+                const peerConnection = createPeerConnection(userId);
+                stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
                 setPeerConnections((prev) => ({ ...prev, [userId]: peerConnection }));
             });
 
@@ -80,16 +70,16 @@ const LiveStream = () => {
         }
 
         setIsStreaming(false);
-        setRemoteStreams([]);
 
+        // Efirni to'xtatish haqidagi ma’lumotlarni serverga yuborish
         const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-        await fetch('https://insta-2-e60y.onrender.com/live', {
+        await fetch('http://localhost:5000/live', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: loggedInUser.email,
                 status: 'stopped',
-                roomId: 'roomId', // Room ID ni kerakli joyga almashtiring
+                roomId: roomId,
                 endTime: new Date().toISOString(),
             }),
         });
@@ -98,7 +88,7 @@ const LiveStream = () => {
         setPeerConnections({});
     };
 
-    const createPeerConnection = (userId, stream) => {
+    const createPeerConnection = (userId) => {
         const peerConnection = new RTCPeerConnection();
         peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
@@ -106,16 +96,9 @@ const LiveStream = () => {
             }
         };
         peerConnection.ontrack = (event) => {
-            setRemoteStreams((prevStreams) => {
-                const updatedStreams = [...prevStreams, event.streams[0]];
-                remoteVideoRefs.current[userId] = remoteVideoRefs.current[userId] || React.createRef();
-                return updatedStreams;
-            });
-            remoteVideoRefs.current[userId].current.srcObject = event.streams[0];
+            setRemoteStreams((prevStreams) => [...prevStreams, event.streams[0]]);
+            remoteVideoRefs.current[userId].srcObject = event.streams[0];
         };
-
-        // Add local tracks to the peer connection
-        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
         return peerConnection;
     };
 
@@ -123,11 +106,11 @@ const LiveStream = () => {
         return () => {
             if (isStreaming) stopStream();
         };
-    }, []);
+    }, [isStreaming]);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-4">
-           <LiveStreamList/>
+            <LiveStreamList />
             <div className="w-full md:w-3/4 lg:w-1/2">
                 <div className="relative shadow-lg rounded-lg overflow-hidden bg-black border border-gray-600">
                     <video
@@ -145,14 +128,14 @@ const LiveStream = () => {
                     <button
                         onClick={startStream}
                         disabled={isStreaming}
-                        className={`px-6 py-3 text-lg font-semibold rounded-lg transition ${isStreaming ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                        className={`px-6 py-3 text-lg font-semibold rounded-lg transition ${isStreaming ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600'}`}
                     >
                         Jonli efirni boshlash
                     </button>
                     <button
                         onClick={stopStream}
                         disabled={!isStreaming}
-                        className={`px-6 py-3 text-lg font-semibold rounded-lg transition ${!isStreaming ? 'bg-gray-500' : 'bg-red-500 hover:bg-red-600'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                        className={`px-6 py-3 text-lg font-semibold rounded-lg transition ${!isStreaming ? 'bg-gray-500' : 'bg-red-500 hover:bg-red-600'}`}
                     >
                         Efirdan chiqish
                     </button>

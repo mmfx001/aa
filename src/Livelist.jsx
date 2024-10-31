@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LiveStreamList = () => {
     const [liveStreams, setLiveStreams] = useState([]);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
-    // Mavjud jonli efirlarni olish
+    // Fetch existing live streams
     useEffect(() => {
         const fetchLiveStreams = async () => {
             try {
-                const response = await fetch('https://insta-2-e60y.onrender.com/live');
+                const response = await fetch('http://localhost:5000/live');
+                if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
                 setLiveStreams(data);
             } catch (error) {
-                console.error("Jonli efirlarni olishda xatolik:", error);
+                setError("Jonli efirlarni olishda xatolik: " + error.message);
             }
         };
 
@@ -21,6 +25,7 @@ const LiveStreamList = () => {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
             <h1 className="text-2xl font-bold mb-4">Jonli Efirlar</h1>
+            {error && <p className="text-red-500">{error}</p>}
             {liveStreams.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {liveStreams.map((stream) => (
@@ -29,7 +34,7 @@ const LiveStreamList = () => {
                             <p>Foydalanuvchi: {stream.username}</p>
                             <p>Vaqt: {new Date(stream.startTime).toLocaleString()}</p>
                             <button
-                                onClick={() => window.location.href = `/join/${stream.roomId}`}
+                                onClick={() => navigate(`/live/join/${stream.roomId}`)} // O'zgartirdik
                                 className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
                             >
                                 Jonli efirga qo'shilish
@@ -38,7 +43,7 @@ const LiveStreamList = () => {
                     ))}
                 </div>
             ) : (
-                <p>Hozircha jonli efirlar mavjud emas</p>
+                <p>Hozirda jonli efirlar mavjud emas.</p>
             )}
         </div>
     );
