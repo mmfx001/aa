@@ -21,7 +21,6 @@ const Main = () => {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/live" element={<LiveStream />} />
-          <Route path="/livee" element={<LiveStreamList />} />
 
         </Routes>
       </div>
