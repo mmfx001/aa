@@ -10,7 +10,7 @@ const LiveStreamList = () => {
     useEffect(() => {
         const fetchLiveStreams = async () => {
             try {
-                const response = await fetch('http://localhost:5000/live');
+                const response = await fetch('https://livetest-jgle.onrender.com/live');
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
                 setLiveStreams(data);

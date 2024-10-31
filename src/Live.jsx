@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import { useParams } from 'react-router-dom';
 
-const socket = io('http://localhost:5000/live'); // Signaling server manzili
+const socket = io('https://livetest-jgle.onrender.com/live'); // Signaling server manzili
 
 const LiveStream = () => {
     const videoRef = useRef(null);
@@ -29,7 +29,7 @@ const LiveStream = () => {
             };
 
             // Jonli efirga ma'lumotlarni yuborish
-            await fetch('http://localhost:5000/live', {
+            await fetch('https://livetest-jgle.onrender.com/live', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(liveInfo),
@@ -72,7 +72,7 @@ const LiveStream = () => {
 
         // Efirni to'xtatish haqidagi ma’lumotlarni serverga yuborish
         const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-        await fetch('http://localhost:5000/live', {
+        await fetch('https://livetest-jgle.onrender.com/live', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
