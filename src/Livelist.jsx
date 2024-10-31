@@ -6,6 +6,7 @@ const socket = io('https://livetest-jgle.onrender.com/live');
 const LiveStreamList = () => {
     const [liveStreams, setLiveStreams] = useState([]);
     const [currentStream, setCurrentStream] = useState(null);
+
     useEffect(() => {
         // Serverdan jonli efirlar ro'yxatini olish
         const fetchLiveStreams = async () => {
@@ -34,7 +35,13 @@ const LiveStreamList = () => {
             socket.off('stream-stopped');
         };
     }, []);
-    
+
+    // Jonli efirga qo'shilish funksiyasi
+    const joinStream = (stream) => {
+        setCurrentStream(stream); // Tanlangan efirni o'rnatish
+        // Qo'shimcha kodlar, agar kerak bo'lsa
+    };
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
             <h1 className="text-2xl font-bold mb-4">Jonli Efirlar</h1>
