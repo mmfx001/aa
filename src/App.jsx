@@ -11,8 +11,8 @@ const App = () => {
             <Routes>
             <Route path="/" element={<Login />} />
 
-                <Route path="/live/join/:roomId" element={<LiveStream />} />
-                <Route path="/live" element={<LiveStreamList />} />
+            <Route path="/live" element={<LiveStreamList />} />
+            <Route path="/live/stream" element={<LiveStream />} />
             </Routes>
         </Router>
     );
