@@ -12,6 +12,30 @@ const LiveStream = () => {
     const [peerConnections, setPeerConnections] = useState({});
     const { roomId } = useParams();
 
+    // Check if user is already streaming when the component mounts
+    useEffect(() => {
+        const fetchStreamStatus = async () => {
+            const response = await fetch(`https://livetest-jgle.onrender.com/live/${roomId}`);
+            const data = await response.json();
+            setIsStreaming(data.status === 'started');
+
+            // Check local storage for existing stream state
+            const savedStreamState = localStorage.getItem('isStreaming');
+            if (savedStreamState === 'true') {
+                setIsStreaming(true);
+            }
+        };
+
+        fetchStreamStatus();
+
+        return () => {
+            if (isStreaming) {
+                stopStream();
+                localStorage.removeItem('isStreaming'); // Clear stream state on unmount
+            }
+        };
+    }, [isStreaming, roomId]);
+
     const startStream = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -55,6 +79,7 @@ const LiveStream = () => {
                 }
             });
 
+            localStorage.setItem('isStreaming', 'true'); // Save stream state
             setIsStreaming(true);
         } catch (error) {
             console.error("Stream boshlashda xatolik yuz berdi:", error);
@@ -98,12 +123,6 @@ const LiveStream = () => {
         return peerConnection;
     };
 
-    useEffect(() => {
-        return () => {
-            if (isStreaming) stopStream();
-        };
-    }, [isStreaming]);
-
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-4">
             <div className="w-full md:w-3/4 lg:w-1/2">
@@ -139,8 +158,8 @@ const LiveStream = () => {
                 <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4">
                     {remoteStreams.map((stream, index) => (
                         <video
-                            key={index}
-                            ref={(ref) => (remoteVideoRefs.current[index] = ref)}
+                            key={index} // Ideally, use a unique identifier for the key if available
+                            ref={(ref) => (remoteVideoRefs.current[stream.id] = ref)} // Make sure stream has a unique id
                             autoPlay
                             playsInline
                             className="w-full h-32 bg-black rounded-md border border-gray-700"

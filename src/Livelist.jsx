@@ -8,27 +8,33 @@ const LiveStreamList = () => {
     const [currentStream, setCurrentStream] = useState(null);
 
     useEffect(() => {
-        // Serverdan jonli efirlar ro'yxatini olish
         const fetchLiveStreams = async () => {
-            const response = await fetch('https://livetest-jgle.onrender.com/live');
-            const data = await response.json();
-            setLiveStreams(data); // Olingan ma'lumotni state ga qo'shish
+            try {
+                const response = await fetch('https://livetest-jgle.onrender.com/live');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                setLiveStreams(data);
+            } catch (error) {
+                console.error('Error fetching live streams:', error);
+            }
         };
-    
-        fetchLiveStreams(); // Funktsiyani chaqirish
-    
+
+        fetchLiveStreams();
+
         socket.on('live-streams', (streams) => {
             setLiveStreams(streams);
         });
-    
+
         socket.on('stream-started', (stream) => {
             setLiveStreams((prev) => [...prev, stream]);
         });
-    
+
         socket.on('stream-stopped', (roomId) => {
             setLiveStreams((prev) => prev.filter(stream => stream.roomId !== roomId));
         });
-    
+
         return () => {
             socket.off('live-streams');
             socket.off('stream-started');
@@ -36,10 +42,8 @@ const LiveStreamList = () => {
         };
     }, []);
 
-    // Jonli efirga qo'shilish funksiyasi
     const joinStream = (stream) => {
-        setCurrentStream(stream); // Tanlangan efirni o'rnatish
-        // Qo'shimcha kodlar, agar kerak bo'lsa
+        setCurrentStream(stream);
     };
 
     return (
