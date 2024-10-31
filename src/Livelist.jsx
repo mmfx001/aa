@@ -3,9 +3,8 @@ import io from 'socket.io-client';
 
 const socket = io('https://livetest-jgle.onrender.com/live');
 
-const LiveStreamList = () => {
+const LiveStreamList = ({ onStreamSelected }) => {
     const [liveStreams, setLiveStreams] = useState([]);
-    const [currentStream, setCurrentStream] = useState(null);
 
     useEffect(() => {
         // Jonli efirlar haqida yangilanishlarni olish
@@ -31,12 +30,12 @@ const LiveStreamList = () => {
     }, []);
 
     const joinStream = (stream) => {
-        setCurrentStream(stream);
+        onStreamSelected(stream);
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-            <h1 className="text-2xl font-bold mb-4">Jonli Efirlar</h1>
+        <div className="mt-8">
+            <h2 className="text-xl font-bold">Hozirda davom etayotgan jonli efirlar:</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {liveStreams.map((stream) => (
                     <div key={stream.roomId} className="bg-gray-800 p-4 rounded-lg shadow-lg">
@@ -50,17 +49,6 @@ const LiveStreamList = () => {
                     </div>
                 ))}
             </div>
-            {currentStream && (
-                <div className="mt-8">
-                    <h2 className="text-xl font-bold">Jonli Efir</h2>
-                    <video
-                        autoPlay
-                        playsInline
-                        className="w-full h-64 bg-black rounded-lg"
-                        src={currentStream.stream}
-                    />
-                </div>
-            )}
         </div>
     );
 };

@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import { useParams } from 'react-router-dom';
 
-const socket = io('https://livetest-jgle.onrender.com/live'); // Signaling server manzili
+const socket = io('https://livetest-jgle.onrender.com/live');
 
-const LiveStream = () => {
+const LiveStream = ({ onStreamStarted }) => {
     const videoRef = useRef(null);
     const [isStreaming, setIsStreaming] = useState(false);
-    const { roomId } = useParams(); // roomId ni olish
+    const { roomId } = useParams();
 
     const startStream = async () => {
         try {
@@ -17,6 +17,7 @@ const LiveStream = () => {
             // Jonli efirga ma'lumotlarni yuborish
             socket.emit('start-stream', { roomId, stream });
 
+            onStreamStarted({ roomId, videoTitle: `Stream in ${roomId}` }); // Streaming boshlanganda ro'yxatga qo'shish
             setIsStreaming(true);
         } catch (error) {
             console.error("Stream boshlashda xatolik yuz berdi:", error);
@@ -33,19 +34,8 @@ const LiveStream = () => {
     };
 
     useEffect(() => {
-        socket.on('stream-started', (stream) => {
-            videoRef.current.srcObject = stream;
-            setIsStreaming(true);
-        });
-
-        socket.on('stream-stopped', () => {
-            setIsStreaming(false);
-            videoRef.current.srcObject = null;
-        });
-
         return () => {
-            socket.off('stream-started');
-            socket.off('stream-stopped');
+            stopStream();
         };
     }, []);
 
