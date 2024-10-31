@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
-import LiveStreamList from './LiveList';
 import { useParams } from 'react-router-dom';
 
 const socket = io('http://localhost:5000/live'); // Signaling server manzili
@@ -110,7 +109,6 @@ const LiveStream = () => {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-4">
-            <LiveStreamList />
             <div className="w-full md:w-3/4 lg:w-1/2">
                 <div className="relative shadow-lg rounded-lg overflow-hidden bg-black border border-gray-600">
                     <video
