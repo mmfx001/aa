@@ -8,21 +8,16 @@ const LiveStreamList = () => {
     const [currentStream, setCurrentStream] = useState(null);
 
     useEffect(() => {
+        // Fetch live streams from the server
         const fetchLiveStreams = async () => {
-            try {
-                const response = await fetch('https://livetest-jgle.onrender.com/live');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                setLiveStreams(data);
-            } catch (error) {
-                console.error('Error fetching live streams:', error);
-            }
+            const response = await fetch('https://livetest-jgle.onrender.com/live');
+            const data = await response.json();
+            setLiveStreams(data);
         };
 
         fetchLiveStreams();
 
+        // Listen for socket events
         socket.on('live-streams', (streams) => {
             setLiveStreams(streams);
         });
@@ -35,6 +30,7 @@ const LiveStreamList = () => {
             setLiveStreams((prev) => prev.filter(stream => stream.roomId !== roomId));
         });
 
+        // Cleanup on component unmount
         return () => {
             socket.off('live-streams');
             socket.off('stream-started');
@@ -69,7 +65,7 @@ const LiveStreamList = () => {
                         autoPlay
                         playsInline
                         className="w-full h-64 bg-black rounded-lg"
-                        src={currentStream.stream}
+                        src={currentStream.stream} // Ensure the stream source is correct
                     />
                 </div>
             )}

@@ -12,14 +12,21 @@ const LiveStream = () => {
     const [peerConnections, setPeerConnections] = useState({});
     const { roomId } = useParams();
 
-    // Check if user is already streaming when the component mounts
+    useEffect(() => {
+        console.log('Room ID:', roomId);
+    }, [roomId]);
+
     useEffect(() => {
         const fetchStreamStatus = async () => {
+            if (!roomId) {
+                console.error('Room ID is undefined');
+                return;
+            }
+
             const response = await fetch(`https://livetest-jgle.onrender.com/live/${roomId}`);
             const data = await response.json();
             setIsStreaming(data.status === 'started');
 
-            // Check local storage for existing stream state
             const savedStreamState = localStorage.getItem('isStreaming');
             if (savedStreamState === 'true') {
                 setIsStreaming(true);
@@ -31,7 +38,7 @@ const LiveStream = () => {
         return () => {
             if (isStreaming) {
                 stopStream();
-                localStorage.removeItem('isStreaming'); // Clear stream state on unmount
+                localStorage.removeItem('isStreaming');
             }
         };
     }, [isStreaming, roomId]);
@@ -79,7 +86,7 @@ const LiveStream = () => {
                 }
             });
 
-            localStorage.setItem('isStreaming', 'true'); // Save stream state
+            localStorage.setItem('isStreaming', 'true');
             setIsStreaming(true);
         } catch (error) {
             console.error("Stream boshlashda xatolik yuz berdi:", error);
@@ -158,8 +165,8 @@ const LiveStream = () => {
                 <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4">
                     {remoteStreams.map((stream, index) => (
                         <video
-                            key={index} // Ideally, use a unique identifier for the key if available
-                            ref={(ref) => (remoteVideoRefs.current[stream.id] = ref)} // Make sure stream has a unique id
+                            key={index}
+                            ref={(ref) => (remoteVideoRefs.current[stream.id] = ref)}
                             autoPlay
                             playsInline
                             className="w-full h-32 bg-black rounded-md border border-gray-700"
